@@ -15,7 +15,6 @@ import {
   StatusBar,
   Modal,
   Animated,
-  Linking,
 } from "react-native";
 import * as Location from "expo-location";
 import * as ImagePicker from "expo-image-picker";
@@ -227,8 +226,11 @@ function EmailScreen({ email, onRevise, onSend, onBack, revising }) {
   const [suggestion, setSuggestion] = useState("");
   const [showSuggestionBox, setShowSuggestionBox] = useState(false);
 
-  const useWebsiteInstead = email.useWebsiteInstead;
-  const websiteUrl = email.websiteUrl;
+  // New metadata from evidence-based routing
+  const fallbackLevel = email.fallback_level;
+  const evidence = email.evidence;
+  const confidence = email.confidence;
+  const agencyName = email.agency_name;
 
   useEffect(() => {
     setTo(email.to);
@@ -249,14 +251,6 @@ function EmailScreen({ email, onRevise, onSend, onBack, revising }) {
     });
   };
 
-  const openWebsite = () => {
-    if (websiteUrl) {
-      Linking.openURL(websiteUrl).catch(() => {
-        Alert.alert("Error", "Could not open website");
-      });
-    }
-  };
-
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
       <ScrollView style={styles.screen} contentContainerStyle={styles.screenContent} keyboardShouldPersistTaps="handled">
@@ -265,24 +259,27 @@ function EmailScreen({ email, onRevise, onSend, onBack, revising }) {
           <TouchableOpacity onPress={onBack} style={styles.backBtn}>
             <Text style={styles.backBtnText}>← New Report</Text>
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>{useWebsiteInstead ? "Contact Information" : "Review Email"}</Text>
+          <Text style={styles.headerTitle}>Review Email</Text>
           <Text style={styles.headerSubtitle}>
-            {useWebsiteInstead
-              ? "We couldn't verify a direct email. Please use the official website to submit your report."
+            {confidence && confidence < 0.3
+              ? "We found a contact, but please verify the email address."
               : "We found the right contact. Review the draft below."}
           </Text>
         </View>
 
-        {/* Website Notice */}
-        {useWebsiteInstead && (
-          <View style={styles.websiteNotice}>
-            <Text style={styles.websiteNoticeIcon}>🌐</Text>
-            <Text style={styles.websiteNoticeText}>
-              To ensure your report reaches the right department, please submit through the official city website.
+        {/* Routing Info Badge */}
+        {fallbackLevel && (
+          <View style={[styles.routingBadge, fallbackLevel === "UNVERIFIED_GUESS" && styles.routingBadgeWarning]}>
+            <Text style={styles.routingBadgeText}>
+              {fallbackLevel === "TOPIC_SPECIFIC" && "✓ Topic-specific contact found"}
+              {fallbackLevel === "AGENCY_MAIN" && "✓ Department contact found"}
+              {fallbackLevel === "JURISDICTION_GENERAL" && "General city contact"}
+              {fallbackLevel === "UNVERIFIED_GUESS" && "⚠️ Unverified - please double-check"}
             </Text>
-            <TouchableOpacity style={styles.websiteBtn} onPress={openWebsite}>
-              <Text style={styles.websiteBtnText}>Open Official Website</Text>
-            </TouchableOpacity>
+            {agencyName && <Text style={styles.routingAgency}>{agencyName}</Text>}
+            {evidence?.source_title && (
+              <Text style={styles.routingSource}>Source: {evidence.source_title}</Text>
+            )}
           </View>
         )}
 
@@ -715,6 +712,36 @@ const styles = StyleSheet.create({
   },
   sendBtnText: { color: C.white, fontSize: 16, fontWeight: "600" },
   disclaimer: { textAlign: "center", fontSize: 12, color: C.textLight, marginTop: 10 },
+
+  // Routing Info Badge
+  routingBadge: {
+    backgroundColor: "#ECFDF5",
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 14,
+    borderWidth: 1,
+    borderColor: "#10B981",
+  },
+  routingBadgeWarning: {
+    backgroundColor: "#FEF3C7",
+    borderColor: "#F59E0B",
+  },
+  routingBadgeText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#047857",
+  },
+  routingAgency: {
+    fontSize: 12,
+    color: "#065F46",
+    marginTop: 4,
+  },
+  routingSource: {
+    fontSize: 11,
+    color: "#6B7280",
+    marginTop: 4,
+    fontStyle: "italic",
+  },
 
   // Website Notice (when email not verified)
   websiteNotice: {

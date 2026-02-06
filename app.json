@@ -1,0 +1,55 @@
+{
+  "expo": {
+    "name": "CivicReport",
+    "slug": "civic-reporter",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "CivicReport uses your location to auto-detect where the issue is.",
+        "NSCameraUsageDescription": "CivicReport uses your camera to take photos of civic issues.",
+        "NSPhotoLibraryUsageDescription": "CivicReport accesses your photos to attach evidence to reports."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "edgeToEdgeEnabled": true,
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "CivicReport uses your location to auto-detect where the issue is."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "CivicReport accesses your photos to attach evidence to reports.",
+          "cameraPermission": "CivicReport uses your camera to take photos of civic issues."
+        }
+      ]
+    ]
+  }
+}
